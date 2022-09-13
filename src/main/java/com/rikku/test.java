@@ -48,24 +48,19 @@ public class test {
 //        a2.removeAll(a1);
 //        System.out.println("a1数组中缺少的数字是"+a2.get(0));
 
+        Integer[] arr = new Integer[]{0,1,3,4};
+        int n = arr.length+1;
+        fun(arr,n);
 
-    A a1 = new A();
-    A a2 = new B();
-    A a3 = new C();
     }
-}
-class A{
-    int a;
-}
 
-class B extends A{
-    int b;
-}
-
-class C extends B{
-    int c;
-}
-
-class D{
-    int d;
+    static void fun(Integer[] arr,int n){
+        ArrayList<Integer> ints = new ArrayList<>(Arrays.asList(arr));
+        List<Integer> list = new ArrayList<>();
+        for (int i=0;i<=n;i++){
+            list.add(i);
+        }
+        list.removeAll(ints);
+        System.out.println(list);
+    }
 }
