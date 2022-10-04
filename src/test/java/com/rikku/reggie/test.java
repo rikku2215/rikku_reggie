@@ -4,25 +4,35 @@ import com.rikku.reggie.service.DishFlavorService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
 public class test {
     @Autowired
-    DishFlavorService dishFlavorService;
+    private RedisTemplate redisTemplate;
 
     @Test
     public void test1(){
-
-        dishFlavorService.selectBatchByDishId(1397849739276890114L);
+        redisTemplate.opsForValue().set("test1",1111111111,20, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set("test2",22222222,20, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set("test3",333333333,20, TimeUnit.SECONDS);
     }
 
     @Test
     public void test2(){
-        Long[] ids={23132L,21321321L,2141L,436534L,7865L};
-        System.out.println("开始测试------------>");
-        System.out.println(Arrays.toString(ids));
-        System.out.println("结束测试------------>");
+        redisTemplate.delete("test1");
+        redisTemplate.delete("test2");
+    }
+
+    @Test
+    public void test3(){
+        System.out.println(redisTemplate.opsForValue().get("test1"));
+        System.out.println(redisTemplate.opsForValue().get("test2"));
+        System.out.println(redisTemplate.opsForValue().get("test3"));
     }
 }

@@ -7,7 +7,6 @@ import com.rikku.reggie.dto.DishDto;
 import com.rikku.reggie.entity.Category;
 import com.rikku.reggie.entity.Dish;
 import com.rikku.reggie.entity.DishFlavor;
-import com.rikku.reggie.entity.Employee;
 import com.rikku.reggie.service.CategoryService;
 import com.rikku.reggie.service.DishFlavorService;
 import com.rikku.reggie.service.DishService;
@@ -15,11 +14,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,6 +32,8 @@ public class DishController {
     private CategoryService categoryService;
     @Autowired
     private DishFlavorService dishFlavorService;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @GetMapping("/page")
     public R<Page> page(int page,int pageSize,String name){
@@ -60,6 +62,8 @@ public class DishController {
     @PostMapping
     public R<String> save(@RequestBody DishDto dishDto){
         dishService.saveWithFlavor(dishDto);
+        String key = "dish_"+dishDto.getCategoryId()+"1";
+        redisTemplate.delete(key);
         return R.success("新增菜品成功");
     }
 
@@ -72,6 +76,8 @@ public class DishController {
     @PutMapping
     public R<String> update(@RequestBody DishDto dishDto){
         dishService.updateWithFlavor(dishDto);
+        String key = "dish_"+dishDto.getCategoryId()+"1";
+        redisTemplate.delete(key);
         return R.success("修改菜品成功");
     }
 
@@ -84,6 +90,16 @@ public class DishController {
 
     @GetMapping("/list")
     public R<List<DishDto>> list(Dish dish){
+        String key = "dish_"+dish.getCategoryId()+dish.getStatus();
+        List<DishDto> dishDtoList;
+        log.info("222222");
+        dishDtoList = (List<DishDto>) redisTemplate.opsForValue().get(key);
+        log.info("33333");
+        if (dishDtoList!=null){
+            //在缓存中查得到
+            return R.success(dishDtoList);
+        }
+
         Long categoryId = dish.getCategoryId();
         //查找Dish集合
         List<Dish> dishes = dishService.list(categoryId);
@@ -105,6 +121,10 @@ public class DishController {
             dishDtos.add(dishDto);
 
         });
+
+        //存入redis，过期时间5分钟
+        redisTemplate.opsForValue().set(key,dishDtos,5, TimeUnit.MINUTES);
+
         return R.success(dishDtos);
     }
 
