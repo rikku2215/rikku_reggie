@@ -92,9 +92,7 @@ public class DishController {
     public R<List<DishDto>> list(Dish dish){
         String key = "dish_"+dish.getCategoryId()+dish.getStatus();
         List<DishDto> dishDtoList;
-        log.info("222222");
         dishDtoList = (List<DishDto>) redisTemplate.opsForValue().get(key);
-        log.info("33333");
         if (dishDtoList!=null){
             //在缓存中查得到
             return R.success(dishDtoList);
